@@ -1,0 +1,14 @@
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --production=false
+COPY . .
+RUN npm run build
+
+FROM node:18-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/package.json /app/package-lock.json /app/dist ./
+RUN npm ci --production
+EXPOSE 4000
+CMD ["node", "dist/server.js"]
